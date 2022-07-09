@@ -27,17 +27,19 @@ def get_image(path: str) -> np.ndarray:
 def show_images(
     image_1: np.ndarray,
     image_2: np.ndarray, 
+    cmap_1: str="gnuplot2",
+    cmap_2: str="gnuplot2",
     title_1: str="Original",
-    title_2: str="Depth"
+    title_2: str=None,
     ) -> None:
 
     plt.figure()
     plt.subplot(1, 2, 1)
-    plt.imshow(image_1, cmap="gnuplot2")
+    plt.imshow(image_1, cmap=cmap_1)
     plt.axis("off")
     if title_1: plt.title(title_1)
     plt.subplot(1, 2, 2)
-    plt.imshow(image_2, cmap="gray")
+    plt.imshow(image_2, cmap=cmap_2)
     plt.axis("off")
     if title_2: plt.title(title_2)
     figmanager = plt.get_current_fig_manager()
