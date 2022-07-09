@@ -77,10 +77,12 @@ class CFG(object):
 def main():
     args_1: tuple = ("--mode", "-m")
     args_2: tuple = ("--file", "-f")
-    args_3: tuple = ("--save", "-s")
+    args_3: tuple = ("--downscale", "-ds")
+    args_4: tuple = ("--save", "-s")
 
     mode: str = "image"
     filename: str = "Test_1.jpg"
+    downscale: float = None
     save: bool = False
 
     if args_1[0] in sys.argv: mode = sys.argv[sys.argv.index(args_1[0]) + 1]
@@ -89,7 +91,10 @@ def main():
     if args_2[0] in sys.argv: filename = sys.argv[sys.argv.index(args_2[0]) + 1]
     if args_2[1] in sys.argv: filename = sys.argv[sys.argv.index(args_2[1]) + 1]
 
-    if args_3[0] in sys.argv or args_3[1] in sys.argv: save = True
+    if args_3[0] in sys.argv: downscale = float(sys.argv[sys.argv.index(args_3[0]) + 1])
+    if args_3[1] in sys.argv: downscale = float(sys.argv[sys.argv.index(args_3[1]) + 1])
+
+    if args_4[0] in sys.argv or args_4[1] in sys.argv: save = True
 
     breaker()
     cfg = CFG()
@@ -100,6 +105,24 @@ def main():
         result = cfg.infer(image)
         if save: cv2.imwrite(os.path.join(OUTPUT_PATH, filename[:-4] + " - Result.png"), cv2.cvtColor(src=result, code=cv2.COLOR_BGR2RGB))
         else: show_images(image_1=image, image_2=result)
+    
+    elif re.match(r"video", mode, re.IGNORECASE):
+        cap = cv2.VideoCapture(os.path.join(INPUT_PATH, filename))
+
+        while True:
+            ret, frame = cap.read()
+            if not ret: break
+            if downscale:
+                frame = cv2.resize(src=frame, dsize=(int(frame.shape[1]/downscale), int(frame.shape[0]/downscale)), interpolation=cv2.INTER_AREA)
+            result = cfg.infer(frame)
+            frame = np.concatenate((frame, cv2.cvtColor(src=result, code=cv2.COLOR_BGR2RGB)), axis=1)
+            cv2.imshow("Feed", frame)
+
+            if cv2.waitKey(1) & 0xFF == ord("q"): 
+                break
+        
+        cap.release()
+        cv2.destroyAllWindows()
 
     elif re.match(r"realtime", mode, re.IGNORECASE):
         if platform.system() == "Windows":
